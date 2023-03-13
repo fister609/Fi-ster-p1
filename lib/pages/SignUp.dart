@@ -152,12 +152,14 @@ class _SignUpState extends State<SignUp> {
     if (Formkey.currentState!.validate()){
       setState(() {
         _isLoading = true;
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>LoginPage()));
       });
       await authService.registerUserWithEmailAndPassword(fullname, email, password)
           .then((value)async{
         if(value == true){
-
+          await HelperFunction.saveUserLoggedInStatus(value);
+          await HelperFunction.saveUserEmailStatus(email);
+          await HelperFunction.saveUserNameStatus(fullname);
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()));
         }
         else{
           _isLoading = false;
