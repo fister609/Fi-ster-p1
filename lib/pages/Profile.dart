@@ -1,5 +1,6 @@
 import 'package:demo/pages/LoginPage.dart';
 import 'package:demo/pages/SignUp.dart';
+import 'package:demo/service/auth_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 
@@ -16,6 +17,7 @@ class _ProfileState extends State<Profile> {
   bool status = false;
   @override
   Widget build(BuildContext context) {
+    AuthService authService = AuthService();
     return  Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -23,7 +25,6 @@ class _ProfileState extends State<Profile> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AppBar(
-
             ),
             SizedBox(height: 20),
             Center(
@@ -49,7 +50,8 @@ class _ProfileState extends State<Profile> {
             SizedBox(height: 20,),
             ListTile(
               leading: Icon(Icons.home,weight: 25),
-              title: Text('Aids', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+              title: Text('Aids', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),
+              ),
             ),
             SizedBox(height: 20,),
             ListTile(
@@ -57,6 +59,7 @@ class _ProfileState extends State<Profile> {
               title: Text('Second Year', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
             ),
             SizedBox(height: 20,),
+
 
         Row(
           children: <Widget> [
@@ -87,6 +90,7 @@ class _ProfileState extends State<Profile> {
             // TogleButtons(children: [], isSelected:  ),
            Center(
                 child: ElevatedButton(onPressed: (){
+                  authService.signOut();
                   Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
                 }, child: Text("Logout",style: TextStyle(color: Colors.white),),
                 style: ElevatedButton.styleFrom(

@@ -46,7 +46,7 @@ class _MyAppState extends State<MyApp> {
     getUserLoggedInStatus();
   }
   getUserLoggedInStatus() async {
-    await HelperFunction.getUerLoggedInStatus().then((value) {
+    await HelperFunctions.getUserLoggedInStatus().then((value) {
       if(value!=null){
         _isSignedIn = value;
       }

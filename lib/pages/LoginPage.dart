@@ -1,10 +1,13 @@
-import 'dart:math';
-
-import 'package:demo/pages/HomePage.dart';
+import 'package:demo/helper/helper_function.dart';
 import 'package:demo/pages/SignUp.dart';
+import 'package:demo/service/database_service.dart';
+import 'package:demo/widgets/widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:form_field_validator/form_field_validator.dart';
+import '../service/auth_services.dart';
+import 'HomePage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -14,96 +17,154 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final Formkey = GlobalKey<FormState>();
+  final formKey = GlobalKey<FormState>();
+  String email = "";
+  String password = "";
+  bool _isLoading = false;
+  AuthService authService = AuthService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Form(
-          key: Formkey,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-
-            children: [
-              SizedBox(height: 20),
-              TextFormField(
-                decoration: InputDecoration(
-                  label: Text("Email",
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: Colors.black
-                  )),
-                  prefixIcon: Icon(Icons.email_outlined, color: Colors.black,),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 2, style: BorderStyle.solid)
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2, style: BorderStyle.solid)
-                  )
-                ),
-                validator: MultiValidator([
-                  EmailValidator(errorText: "Invalid Email"),
-                  RequiredValidator(errorText: "Required")
-                  ]
-                )
-              ),
-              SizedBox(height: 40),
-              TextFormField(
-                obscureText: true,
-                obscuringCharacter: "#",
-                decoration: InputDecoration(
-                  label: Text("Password",
-                      style: TextStyle(
-                          fontSize: 30,
-                          color: Colors.black
-                      )),
-                  prefixIcon: Icon(Icons.password_outlined, color: Colors.black,),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2, style: BorderStyle.solid)
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.black, width: 2, style: BorderStyle.solid)
-                    )
-                ),
-                validator: MinLengthValidator(min(8, 16), errorText: "Minimum 8 letters")
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(onPressed: (){
-                if(Formkey.currentState!.validate()){
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=> HomePage()));
-                }
-              },
-                child: Text("Login",style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 25,
-                ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: Colors.black,
-                  shape:RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                ),
-              ),
-              SizedBox(height: 20),
-              Text.rich(TextSpan(
-                  text:"Don't have an account ?", style: TextStyle(color: Colors.black, fontSize: 15),
-                  children: [
-                    TextSpan(text: "Create", style: TextStyle(
-                      fontWeight: FontWeight.bold
-                    ))
-                  ],
-                recognizer: TapGestureRecognizer()..onTap = () {
-                    Navigator.push(context, MaterialPageRoute(builder: (contex) => SignUp()));
-                }
-              ))
-            ],
-        ),
-          ),
+      body: _isLoading
+          ? Center(
+        child: CircularProgressIndicator(
+            color: Theme.of(context).primaryColor),
       )
-    )
+          : SingleChildScrollView(
+        child: Padding(
+          padding:
+          const EdgeInsets.symmetric(horizontal: 20, vertical: 80),
+          child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  const Text(
+                    "Groupie",
+                    style: TextStyle(
+                        fontSize: 40, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text("Login now to see what they are talking!",
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w400)),
+                  Image.network('https://img.freepik.com/free-vector/mobile-login-concept-illustration_114360-83.jpg?w=2000'),
+                  TextFormField(
+                    decoration: textInputDecoration.copyWith(
+                        labelText: "Email",
+                        prefixIcon: Icon(
+                          Icons.email,
+                          color: Theme.of(context).primaryColor,
+                        )),
+                    onChanged: (val) {
+                      setState(() {
+                        email = val;
+                      });
+                    },
+
+                    // check tha validation
+                    validator: (val) {
+                      return RegExp(
+                          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                          .hasMatch(val!)
+                          ? null
+                          : "Please enter a valid email";
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    obscureText: true,
+                    decoration: textInputDecoration.copyWith(
+                        labelText: "Password",
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: Theme.of(context).primaryColor,
+                        )),
+                    validator: (val) {
+                      if (val!.length < 6) {
+                        return "Password must be at least 6 characters";
+                      } else {
+                        return null;
+                      }
+                    },
+                    onChanged: (val) {
+                      setState(() {
+                        password = val;
+                      });
+                    },
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          primary: Theme.of(context).primaryColor,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30))),
+                      child: const Text(
+                        "Sign In",
+                        style:
+                        TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                      onPressed: () {
+                        login();
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text.rich(TextSpan(
+                    text: "Don't have an account? ",
+                    style: const TextStyle(
+                        color: Colors.black, fontSize: 14),
+                    children: <TextSpan>[
+                      TextSpan(
+                          text: "Register here",
+                          style: const TextStyle(
+                              color: Colors.black,
+                              decoration: TextDecoration.underline),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              nextScreen(context, const RegisterPage());
+                            }),
+                    ],
+                  )),
+                ],
+              )),
+        ),
+      ),
     );
+  }
+
+  login() async {
+    if (formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      await authService
+          .loginWithUserNameandPassword(email, password)
+          .then((value) async {
+        if (value == true) {
+          QuerySnapshot snapshot =
+          await DatabaseService(uid: FirebaseAuth.instance.currentUser!.uid)
+              .gettingUserData(email);
+          // saving the values to our shared preferences
+          await HelperFunctions.saveUserLoggedInStatus(true);
+          await HelperFunctions.saveUserEmailSF(email);
+          await HelperFunctions.saveUserNameSF(snapshot.docs[0]['fullName']);
+          nextScreenReplace(context, const HomePage());
+        } else {
+          showSnackbar(context, Colors.red, value);
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      });
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:demo/pages/Profile.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -10,6 +11,21 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: Column(
+        children: [
+          ElevatedButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context)=> Profile()));
+          },
+              child: Text(
+                "Profile", style: TextStyle(
+                color: Colors.white,
+                ),
+          ),style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black
+            ),)
+        ],
+      ),
+    );
   }
 }
